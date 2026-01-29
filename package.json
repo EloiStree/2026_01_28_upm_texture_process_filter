@@ -1,0 +1,29 @@
+
+{                                                                                
+  "name": "be.elab.shaderfiltercollection",                              
+  "displayName": "Texture Process Filter Collection",                        
+  "version": "0.0.1",                         
+  "unity": "2018.1",                             
+  "unityRelease": "",                             
+  "description": "Collection of Texture Filter that run on a process",                         
+  "keywords": ["Script","Tool"],                       
+  "dependencies":{},     
+  "relatedPackages":{},     
+  "samples": [
+    {
+      "displayName": "Demo Scene",
+      "description": "Demo on how to use the package",
+      "path": "Scene/Demo"
+    }
+  ] ,     
+  "author" : {
+"name":"",
+"mail":"",
+"url":""},     
+  "repository":{
+"type":"Git",
+"url":"https://github.com/EloiStree/2026_01_28_upm_texture_process_filter.git",
+"footprint":"",
+"revision":""},     
+  "category": "Script"                   
+} 
