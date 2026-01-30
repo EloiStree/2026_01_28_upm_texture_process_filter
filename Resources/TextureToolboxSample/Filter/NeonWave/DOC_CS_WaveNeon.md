@@ -1,0 +1,9 @@
+PROCESS_NAME: Wave Neon
+ONE_LINER: Wave the image and use sobel rainbow color
+LEARN_MORE_URL: https://github.com/EloiStree/HelloCameraTelemetryWithUnity/issues/1
+CALL_TEXT_ID: SHADER_TOY_3fcXRf
+CREATOR_NAME: Eloi Stree
+CREATOR_CONTACT_URL:https://github.com/EloiStree
+DESCRITPION:
+
+

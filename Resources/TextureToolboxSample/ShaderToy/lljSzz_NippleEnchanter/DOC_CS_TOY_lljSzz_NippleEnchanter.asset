@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf3513cde331dbe4d959694d4b492952, type: 3}
+  m_Name: DOC_CS_TOY_lljSzz_NippleEnchanter
+  m_EditorClassIdentifier: be.elab.texturetoolbox::Eloi.TextureUtility.DocumentedComputeShaderScritable
+  m_data:
+    m_documentation: {fileID: 4900000, guid: ffe3e0d3062d7d645974f1a7d7ee68b3, type: 3}
+    m_computeShader: {fileID: 7200000, guid: c6ca2bfae3321ac43aa7dcda6f34c391, type: 3}

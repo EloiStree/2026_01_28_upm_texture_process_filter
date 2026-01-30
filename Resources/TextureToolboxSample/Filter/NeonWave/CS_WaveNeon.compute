@@ -1,0 +1,102 @@
+﻿//https://www.shadertoy.com/view/3fcXRf
+#pragma kernel CSMain
+
+RWTexture2D<float4> m_source;
+RWTexture2D<float4> m_result;
+
+int m_width;
+int m_height;
+float m_time;
+
+// Parameters
+float edgeWidth = 3.0;
+float caAmountBase = 0.003;
+float glAmount = 0.9975;
+float glStrength = 0.9985;
+float colorOffsetStrength = 3.0;
+
+// RGB → luminance
+float luminance(float3 color)
+{
+    return dot(color, float3(0.2126, 0.7152, 0.0722));
+}
+
+// Pseudo-random
+float random(float2 st)
+{
+    return frac(sin(dot(st, float2(12.9898, 78.233))) * 43758.5453123);
+}
+
+// Distortion + chromatic aberration
+float3 getEffectedColor(float2 baseUv, float time, float2 resolution, float caAmount)
+{
+    float distortionStrength = 0.012;
+    float aspect = resolution.x / resolution.y;
+
+    float2 distortedUv = baseUv;
+    distortedUv.x += sin(baseUv.y * 30.0 + time * 1.5) * distortionStrength / aspect;
+    distortedUv.y += cos(baseUv.x * 30.0 * aspect + time * 2.0) * distortionStrength;
+
+    // Clamp UVs
+    float2 uvR = saturate(distortedUv + float2(caAmount, 0.0));
+    float2 uvG = saturate(distortedUv);
+    float2 uvB = saturate(distortedUv - float2(caAmount, 0.0));
+
+    int2 coordR = int2(uvR * resolution);
+    int2 coordG = int2(uvG * resolution);
+    int2 coordB = int2(uvB * resolution);
+
+    float3 color;
+    color.r = m_source[coordR].r;
+    color.g = m_source[coordG].g;
+    color.b = m_source[coordB].b;
+
+    return color;
+}
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= m_width || id.y >= m_height)
+        return;
+
+    float2 resolution = float2(m_width, m_height);
+    float2 uv = float2(id.x, id.y) / resolution;
+
+    // --- 1. Distorted base view ---
+    float caAmount = caAmountBase * cos(m_time) * colorOffsetStrength;
+    float3 baseViewColor = getEffectedColor(uv, m_time, resolution, caAmount);
+
+    // --- 2. Edge detection on distorted image ---
+    float2 pixel = (edgeWidth * sin(m_time)) / resolution;
+
+    float centerLum = luminance(baseViewColor);
+    float topLum = luminance(getEffectedColor(uv + float2(0.0, pixel.y), m_time, resolution, caAmount));
+    float leftLum = luminance(getEffectedColor(uv - float2(pixel.x, 0.0), m_time, resolution, caAmount));
+    float rightLum = luminance(getEffectedColor(uv + float2(pixel.x, 0.0), m_time, resolution, caAmount));
+    float bottomLum = luminance(getEffectedColor(uv - float2(0.0, pixel.y), m_time, resolution, caAmount));
+
+    float dx = -leftLum + rightLum;
+    float dy = -topLum + bottomLum;
+
+    float edge = sqrt(dx * dx + dy * dy);
+    edge = smoothstep(0.08, 0.30, edge);
+    edge *= smoothstep(0.0, 0.1, centerLum);
+
+    // --- 3. Psychedelic neon color ---
+    float3 neonColor = 0.5 + 0.5 * cos(
+        m_time * 1.2 +
+        float3(uv.x, uv.y, uv.x) * 10.0 +
+        float3(0.0, 2.0, 4.0)
+    );
+
+    // --- 4. Glitter ---
+    float glitter = random(uv + fmod(m_time * 0.4, 10.0));
+    glitter = smoothstep(glAmount, glStrength, glitter);
+
+    // --- 5. Combine ---
+    float3 finalColor = lerp(baseViewColor, neonColor, edge);
+    finalColor += glitter * neonColor;
+
+    m_result[id.xy] = float4(finalColor, 1.0);
+}

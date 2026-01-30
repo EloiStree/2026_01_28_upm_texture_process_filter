@@ -1,0 +1,67 @@
+#pragma kernel CSMain
+
+RWTexture2D<float4> m_source;
+RWTexture2D<float4> m_result;
+
+int m_width;
+int m_height;
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= m_width || id.y >= m_height)
+        return;
+
+    // Normalized UVs like Shadertoy
+    float2 p = float2(id.x, id.y) / float2(m_width, m_height);
+
+    float r = 0.0;
+    float iter = 0.0;
+
+    // Red channel
+    [unroll]
+    for (int i = 0; i < 50; i++)
+    {
+        float2 offset = float2(cos(iter) * 0.01, sin(iter) * 0.05);
+        int2 coord = int2(saturate(p + offset) * float2(m_width, m_height));
+
+        float sampleR = m_source[coord].r;
+        r += smoothstep(0.3, 0.4, sampleR);
+        iter += 1.0;
+    }
+    r /= iter;
+
+    // Green channel
+    float g = 0.0;
+    iter = 0.0;
+
+    [unroll]
+    for (int i = 0; i < 50; i++)
+    {
+        float2 offset = float2(cos(iter) * 0.05, sin(iter) * 0.05);
+        int2 coord = int2(saturate(p + offset) * float2(m_width, m_height));
+
+        float sampleG = m_source[coord].g;
+        g += smoothstep(0.3, 0.4, sampleG);
+        iter += 1.0;
+    }
+    g /= iter;
+
+    // Blue channel
+    float b = 0.0;
+    iter = 0.0;
+
+    [unroll]
+    for (int i = 0; i < 50; i++)
+    {
+        float2 offset = float2(cos(iter) * 0.05, sin(iter) * 0.01);
+        int2 coord = int2(saturate(p + offset) * float2(m_width, m_height));
+
+        float sampleB = m_source[coord].b;
+        b += smoothstep(0.3, 0.4, sampleB);
+        iter += 1.0;
+    }
+    b /= iter;
+
+    m_result[id.xy] = float4(r, g, b, 1.0);
+}

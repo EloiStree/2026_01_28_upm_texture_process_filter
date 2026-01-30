@@ -1,0 +1,79 @@
+/*
+PROCESS_NAME:
+ONE_LINER:
+LEARN_MORE_URL: https://github.com/EloiStree/HelloCameraTelemetryWithUnity/issues/1
+CALL_TEXT_ID: SHADER_TOY_
+CREATOR_NAME: Eloi Stree
+CREATOR_CONTACT_URL:https://github.com/EloiStree
+DESCRITPION:
+*/
+
+#pragma kernel CSMain
+
+RWTexture2D<float4> m_source;
+RWTexture2D<float4> m_result;
+    
+int m_width;
+int m_height;
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= m_width || id.y >= m_height)
+        return;
+
+    // Normalized UVs like ShaderToy
+    float2 uv = float2(id.x, id.y) / float2(m_width, m_height);
+
+    // Sobel kernels
+    static const float kernelX[9] =
+    {
+        -1.0, 0.0, 1.0,
+        -2.0, 0.0, 2.0,
+        -1.0, 0.0, 1.0
+    };
+
+    static const float kernelY[9] =
+    {
+        -1.0, -2.0, -1.0,
+         0.0, 0.0, 0.0,
+         1.0, 2.0, 1.0
+    };
+
+    float2 texel = 1.0 / float2(m_width, m_height);
+
+    float edgeX = 0.0;
+    float edgeY = 0.0;
+
+    int idx = 0;
+
+    [unroll]
+    for (int y = -1; y <= 1; y++)
+    {
+        [unroll]
+        for (int x = -1; x <= 1; x++)
+        {
+            float2 offsetUV = uv + float2(x, y) * texel;
+
+            // Clamp to texture bounds
+            int2 coord = int2(
+                saturate(offsetUV) * float2(m_width, m_height)
+            );
+
+            float3 texColor = m_source[coord].rgb;
+
+            // Luminance
+            float intensity = dot(texColor, float3(0.299, 0.587, 0.114));
+
+            edgeX += intensity * kernelX[idx];
+            edgeY += intensity * kernelY[idx];
+
+            idx++;
+        }
+    }
+
+    float edge = length(float2(edgeX, edgeY));
+    float edgeColor = 1.0 - edge;
+
+    m_result[id.xy] = float4(edgeColor, edgeColor, edgeColor, 1.0);
+}
